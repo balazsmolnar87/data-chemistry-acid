@@ -2,7 +2,8 @@
  * Normalize the database
  *
  * Create new tables and define their relationships based on the schema in `normalization.png`
- 
+ */
+
 DROP TABLE IF EXISTS gender;
 CREATE TABLE gender
 (
@@ -36,9 +37,6 @@ CREATE TABLE tolkien_character
     CONSTRAINT fk_tolkien_character_category_id FOREIGN KEY(category_id) REFERENCES category(id)
 );
 
- */
-
-
 /**
  * Populate the new tables
  *
@@ -46,6 +44,39 @@ CREATE TABLE tolkien_character
  * Use transaction(s).
  */
 
+BEGIN;
+SAVEPOINT before_insert;
+
+INSERT INTO gender (name)
+(SELECT DISTINCT gender FROM middle_earth_character);
+
+INSERT INTO race (name)
+(SELECT DISTINCT race FROM middle_earth_character);
+
+INSERT INTO category (name)
+(SELECT DISTINCT category FROM middle_earth_character);
+
+INSERT INTO tolkien_character (id, name, gender_id, race_id, category_id)
+(
+    SELECT
+        middle_earth_character.id,
+        middle_earth_character.name,
+        gender.id AS gender_id,
+        race.id AS race_id,
+        category.id AS category_id
+    FROM
+        middle_earth_character
+    INNER JOIN
+        gender ON gender.name = middle_earth_character.gender
+    INNER JOIN
+        race ON race.name = middle_earth_character.race
+INNER JOIN
+        category ON category.name = middle_earth_character.category
+    ORDER BY
+        middle_earth_character.id ASC
+);
+
+COMMIT;
 
 /**
  * Refactor the database
