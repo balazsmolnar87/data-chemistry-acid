@@ -86,9 +86,33 @@ COMMIT;
  * Run the query in the `app.pgsql` file and check the results.
  */
 
+ALTER TABLE IF EXISTS middle_earth_character
+RENAME TO deprecated_middle_earth_character;
+
+CREATE VIEW middle_earth_character AS
+(
+    SELECT
+        tolkien_character.id,
+        tolkien_character.name,
+        gender.name AS gender,
+        race.name AS race,
+        category.name AS category
+    FROM
+        tolkien_character
+    INNER JOIN
+        gender ON gender.id = tolkien_character.gender_id
+    INNER JOIN
+        race ON race.id = tolkien_character.race_id
+    INNER JOIN
+        category ON category.id = tolkien_character.category_id
+    ORDER BY
+        tolkien_character.id
+);
 
 /**
  * Delete legacy data
  *
  * Delete the `deprecated_middle_earth_character` table.
  */
+ 
+ DROP TABLE IF EXISTS deprecated_middle_earth_character;
